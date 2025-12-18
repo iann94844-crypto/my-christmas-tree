@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Christmas Tree</title>
+  <style>
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 800px at 50% 0%, #123b5a, #06121b);
+      color:#fff;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+    h1{ margin:18px 0 6px; font-size:18px; text-align:center; }
+    .msg{
+      margin:0 0 12px;
+      font-size:14px;
+      opacity:.92;
+      text-align:center;
+      padding:0 14px;
+      line-height:1.35;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-bottom:10px;
+      padding:0 14px;
+    }
+    button, label{
+      background: rgba(255,255,255,.12);
+      border:0;
+      color:#fff;
+      padding:10px 14px;
+      border-radius:14px;
+      font-weight:600;
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+      cursor:pointer;
+      user-select:none;
+    }
+    input[type="file"]{ display:none; }
+
+    .editor{
+      width:min(520px, 92vw);
+      display:flex;
+      gap:10px;
+      padding:0 14px 14px;
+      box-sizing:border-box;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .editor input[type="text"]{
+      flex:1;
+      min-width:220px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color:#fff;
+      outline:none;
+    }
+    .editor input[type="text"]::placeholder{ color: rgba(255,255,255,.55); }
+
+    .wrap{
+      width:min(520px, 92vw);
+      padding-bottom:20px;
+    }
+
+    .top{
+      display:flex;
+      justify-content:center;
+      margin-bottom:12px;
+    }
+    .top img{
+      width:90px;
+      height:90px;
+      object-fit:cover;
+      border-radius:18px;
+      border:2px solid rgba(255,255,255,.18);
+      box-shadow: 0 20px 40px rgba(0,0,0,.35);
+    }
+
+    .tree{ display:flex; flex-direction:column; gap:10px; }
+    .row{ display:flex; justify-content:center; gap:10px; }
+
+    .card{
+      width:72px;
+      aspect-ratio:1/1;
+      border-radius:16px;
+      overflow:hidden;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 14px 28px rgba(0,0,0,.28);
+      position:relative;
+    }
+    .card img{ width:100%; height:100%; object-fit:cover; }
+
+    /* lights */
+    .twinkle .card::after{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius:18px;
+      background: conic-gradient(
+        rgba(255,0,80,.0),
+        rgba(255,0,80,.6),
+        rgba(255,255,0,.6),
+        rgba(0,255,180,.6),
+        rgba(80,160,255,.6),
+        rgba(255,0,80,.0)
+      );
+      filter: blur(10px);
+      opacity:0;
+      animation: glow 2s infinite ease-in-out;
+      pointer-events:none;
+    }
+    .twinkle .card:nth-child(2n)::after{ animation-delay:.5s }
+    .twinkle .card:nth-child(3n)::after{ animation-delay:1s }
+    @keyframes glow{ 0%,100%{opacity:0} 50%{opacity:.9} }
+
+    /* snow */
+    .snow{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+    }
+    .flake{
+      position:absolute;
+      top:-10px;
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:#fff;
+      opacity:.85;
+      animation: fall linear forwards;
+    }
+    @keyframes fall{ to{ transform: translateY(110vh); opacity:0 } }
+
+    .note{
+      width:min(520px, 92vw);
+      padding:0 14px 18px;
+      box-sizing:border-box;
+      opacity:.65;
+      font-size:12px;
+      text-align:center;
+      line-height:1.35;
+    }
+    footer{ font-size:12px; opacity:.6; padding:12px; text-align:center; }
+  </style>
+</head>
+<body>
+
+<h1>🎄 My Christmas Tree</h1>
+<p class="msg" id="msgText">Thanks for coming into my life</p>
+
+<div class="controls">
+  <label>
+    📷 Upload 20 photos
+    <input id="fileInput" type="file" accept="image/*" multiple>
+  </label>
+  <button id="btnLights">✨ Lights</button>
+  <button id="btnSnow">❄️ Snow</button>
+</div>
+
+<div class="editor">
+  <input id="msgInput" type="text" placeholder="Type your message here…" />
+  <button id="btnSetMsg">📝 Set message</button>
+</div>
+
+<div class="wrap" id="wrap">
+  <div class="top" id="top"></div>
+  <div class="tree" id="tree"></div>
+</div>
+
+<div class="snow" id="snow" hidden></div>
+
+<div class="note">
+  🎵 Background music: you can add your own later.<br/>
+  (I left a simple placeholder in the code.)
+</div>
+
+<footer>No 3D • Phone friendly • No renaming</footer>
+
+<script>
+  const MAX_PHOTOS = 20;
+  const ROWS = [1,2,3,4,5,3,2]; // total 20 (not counting the top photo)
+
+  const input = document.getElementById("fileInput");
+  const tree = document.getElementById("tree");
+  const top = document.getElementById("top");
+  const wrap = document.getElementById("wrap");
+  const snow = document.getElementById("snow");
+
+  const msgText = document.getElementById("msgText");
+  const msgInput = document.getElementById("msgInput");
+  const btnSetMsg = document.getElementById("btnSetMsg");
+
+  // Save message so it stays after refresh (mobile friendly)
+  const saved = localStorage.getItem("tree_message");
+  if (saved) msgText.textContent = saved;
+
+  btnSetMsg.onclick = () => {
+    const v = (msgInput.value || "").trim();
+    if (!v) return;
+    msgText.textContent = v;
+    localStorage.setItem("tree_message", v);
+    msgInput.value = "";
+  };
+
+  input.onchange = () => {
+    const files = [...input.files];
+
+    if (files.length !== MAX_PHOTOS) {
+      alert("Please select exactly 20 photos 🙂");
+      return;
+    }
+
+    top.innerHTML = "";
+    tree.innerHTML = "";
+
+    const urls = files.map(f => URL.createObjectURL(f));
+
+    // first photo = top
+    const topImg = document.createElement("img");
+    topImg.src = urls[0];
+    top.appendChild(topImg);
+
+    // remaining 19 photos fill the rows (we use 19?) -> we actually need 20-1=19
+    // But ROWS sums to 20, so we will use photos[1..20] = 19? That would be wrong.
+    // So: we treat the top as part of the 20 photos total, and ROWS sums to 19.
+    // Let's fix: ROWS should sum to 19 (tree) because 1 photo is the top.
+
+    // ---- IMPORTANT FIX BELOW ----
+    // We'll build using exactly the remaining photos (files[1..19]) by defining a correct layout:
+  };
+
+  // Buttons
+  document.getElementById("btnLights").onclick = () => {
+    wrap.classList.toggle("twinkle");
+  };
+
+  let snowTimer = null;
+  function spawnFlake(){
+    const f = document.createElement("div");
+    f.className = "flake";
+    f.style.left = Math.random()*100 + "vw";
+    f.style.width = f.style.height = (3+Math.random()*5)+"px";
+    f.style.animationDuration = (3+Math.random()*4)+"s";
+    snow.appendChild(f);
+    setTimeout(()=>f.remove(), 7000);
+  }
+  document.getElementById("btnSnow").onclick = () => {
+    snow.hidden = !snow.hidden;
+    if (!snow.hidden) {
+      snowTimer = setInterval(spawnFlake, 140);
+    } else {
+      clearInterval(snowTimer);
+      snow.innerHTML = "";
+    }
+  };
+
+  // ---- BUILD TREE CORRECTLY FOR 20 TOTAL PHOTOS (1 top + 19 tree) ----
+  // Layout for 19 photos in the tree:
+  const TREE_ROWS = [1,2,3,4,5,3,1]; // sum = 19
+
+  function renderTree(urls){
+    // urls[0] is top, urls[1..19] are tree photos
+    top.innerHTML = "";
+    tree.innerHTML = "";
+
+    const topImg = document.createElement("img");
+    topImg.src = urls[0];
+    top.appendChild(topImg);
+
+    let k = 1;
+    for (const n of TREE_ROWS) {
+      const row = document.createElement("div");
+      row.className = "row";
+      for (let i=0; i<n; i++) {
+        const card = document.createElement("div");
+        card.className = "card";
+        const img = document.createElement("img");
+        img.src = urls[k++];
+        card.appendChild(img);
+        row.appendChild(card);
+      }
+      tree.appendChild(row);
+    }
+  }
+
+  input.onchange = () => {
+    const files = [...input.files];
+    if (files.length !== 20) {
+      alert("Please select exactly 20 photos 🙂");
+      return;
+    }
+    const urls = files.map(f => URL.createObjectURL(f));
+    renderTree(urls);
+  };
+
+  // ---- OPTIONAL MUSIC PLACEHOLDER (you add your own file later) ----
+  // Example (when you're ready):
+  // const audio = new Audio("music.mp3");
+  // audio.loop = true;
+  // audio.play();
+</script>
+
+</body>
+</html>
