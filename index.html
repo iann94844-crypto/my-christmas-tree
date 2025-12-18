@@ -163,12 +163,14 @@
 
 <div class="controls">
   <label>
-    📷 Upload 20 photos
+    📷 Upload photos
     <input id="fileInput" type="file" accept="image/*" multiple>
   </label>
+  <button id="btnStart">▶️ Start Tree</button>
   <button id="btnLights">✨ Lights</button>
   <button id="btnSnow">❄️ Snow</button>
 </div>
+
 
 <div class="editor">
   <input id="msgInput" type="text" placeholder="Type your message here…" />
@@ -240,15 +242,7 @@
     }
   }
 
-  input.onchange = () => {
-    const files = Array.from(input.files || []);
-
-    // DEBUG: show how many you selected (so it never feels like "nothing")
-    alert(`You selected: ${files.length} files`);
-
-    if (files.length < NEED) {
-      alert(`Please select at least ${NEED} photos 🙂`);
-      input.value = "";
+ 
       return;
     }
 
@@ -290,5 +284,6 @@
 
 </body>
 </html>
+
 
 
