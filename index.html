@@ -163,14 +163,13 @@
 <p class="msg" id="msgText">Thanks for coming into my life</p>
 
 <div class="controls">
-  <label>
-    📷 Upload photos
-    <input id="fileInput" type="file" accept="image/*" multiple>
-  </label>
+  <button id="btnPick">📷 Upload photos</button>
+  <input id="fileInput" type="file" accept="image/*" multiple style="display:none">
   <button id="btnStart">▶️ Start Tree</button>
   <button id="btnLights">✨ Lights</button>
   <button id="btnSnow">❄️ Snow</button>
 </div>
+
 
 <div class="editor">
   <input id="msgInput" type="text" placeholder="Type your message here…" />
@@ -246,7 +245,7 @@
     uploadedFiles = Array.from(fileInput.files || []);
     statusText.textContent = `Loaded ${uploadedFiles.length} photo(s). Press Start Tree. (Needs at least ${NEED})`;
     // allow selecting the same files again later
-    fileInput.value = "";
+
   };
 
   document.getElementById("btnStart").onclick = () => {
@@ -291,3 +290,4 @@
 
 </body>
 </html>
+
