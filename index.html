@@ -50,7 +50,7 @@
       width:min(520px, 92vw);
       display:flex;
       gap:10px;
-      padding:0 14px 14px;
+      padding:0 14px 8px;
       box-sizing:border-box;
       align-items:center;
       flex-wrap:wrap;
@@ -67,6 +67,16 @@
       outline:none;
     }
     .editor input[type="text"]::placeholder{ color: rgba(255,255,255,.55); }
+
+    .status{
+      width:min(520px, 92vw);
+      padding:0 14px 14px;
+      box-sizing:border-box;
+      text-align:center;
+      font-size:13px;
+      opacity:.85;
+      line-height:1.35;
+    }
 
     .wrap{
       width:min(520px, 92vw);
@@ -144,15 +154,6 @@
     }
     @keyframes fall{ to{ transform: translateY(110vh); opacity:0 } }
 
-    .note{
-      width:min(520px, 92vw);
-      padding:0 14px 18px;
-      box-sizing:border-box;
-      opacity:.65;
-      font-size:12px;
-      text-align:center;
-      line-height:1.35;
-    }
     footer{ font-size:12px; opacity:.6; padding:12px; text-align:center; }
   </style>
 </head>
@@ -171,11 +172,12 @@
   <button id="btnSnow">❄️ Snow</button>
 </div>
 
-
 <div class="editor">
   <input id="msgInput" type="text" placeholder="Type your message here…" />
   <button id="btnSetMsg">📝 Set message</button>
 </div>
+
+<div class="status" id="statusText">Upload at least 20 photos, then press <b>Start Tree</b>.</div>
 
 <div class="wrap" id="wrap">
   <div class="top" id="top"></div>
@@ -184,31 +186,26 @@
 
 <div class="snow" id="snow" hidden></div>
 
-<div class="note">
-  🎵 Background music: you can add your own later.<br/>
-  (I left a simple placeholder in the code.)
-</div>
-
 <footer>No 3D • Phone friendly • No renaming</footer>
 
 <script>
   const NEED = 20;
-  const TREE_ROWS = [1,2,3,4,5,3,1]; // 19 photos for tree body
-  // total used = 1(top) + 19 = 20
+  const TREE_ROWS = [1,2,3,4,5,3,1]; // 19 images for tree body (plus 1 top = 20)
 
-  const input = document.getElementById("fileInput");
+  const fileInput = document.getElementById("fileInput");
   const tree = document.getElementById("tree");
   const top = document.getElementById("top");
   const wrap = document.getElementById("wrap");
   const snow = document.getElementById("snow");
+  const statusText = document.getElementById("statusText");
 
   const msgText = document.getElementById("msgText");
   const msgInput = document.getElementById("msgInput");
   const btnSetMsg = document.getElementById("btnSetMsg");
 
-  // restore saved message
-  const saved = localStorage.getItem("tree_message");
-  if (saved) msgText.textContent = saved;
+  // Save/restore message
+  const savedMsg = localStorage.getItem("tree_message");
+  if (savedMsg) msgText.textContent = savedMsg;
 
   btnSetMsg.onclick = () => {
     const v = (msgInput.value || "").trim();
@@ -242,16 +239,27 @@
     }
   }
 
- 
+  // Store uploaded files until Start is pressed
+  let uploadedFiles = [];
+
+  fileInput.onchange = () => {
+    uploadedFiles = Array.from(fileInput.files || []);
+    statusText.textContent = `Loaded ${uploadedFiles.length} photo(s). Press Start Tree. (Needs at least ${NEED})`;
+    // allow selecting the same files again later
+    fileInput.value = "";
+  };
+
+  document.getElementById("btnStart").onclick = () => {
+    if (uploadedFiles.length < NEED) {
+      statusText.textContent = `Not enough photos. Please upload at least ${NEED} photos.`;
       return;
     }
-
-    const selected = files.slice(0, NEED);
+    const selected = uploadedFiles.slice(0, NEED);
     const urls = selected.map(f => URL.createObjectURL(f));
     renderTree(urls);
-
-    // allow re-uploading the same photos again
-    input.value = "";
+    statusText.textContent = `Tree created using the first ${NEED} photos ✅`;
+    // scroll into view
+    document.getElementById("wrap").scrollIntoView({behavior:"smooth", block:"start"});
   };
 
   // Lights
@@ -281,9 +289,5 @@
   };
 </script>
 
-
 </body>
 </html>
-
-
-
