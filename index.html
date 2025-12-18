@@ -240,8 +240,12 @@
 
   // Store uploaded files until Start is pressed
   let uploadedFiles = [];
+document.getElementById("btnPick").onclick = () => {
+  fileInput.click();
+};
 
   fileInput.onchange = () => {
+    
     uploadedFiles = Array.from(fileInput.files || []);
     statusText.textContent = `Loaded ${uploadedFiles.length} photo(s). Press Start Tree. (Needs at least ${NEED})`;
     // allow selecting the same files again later
@@ -290,4 +294,5 @@
 
 </body>
 </html>
+
 
